@@ -1,9 +1,14 @@
-import { Container } from "@mui/material";
+import { Button, Container, Grid, Typography } from "@mui/material";
 import { ApexOptions } from "apexcharts";
 import ReactApexChart from "react-apexcharts";
+import { DatePicker } from "@mui/x-date-pickers";
+import { useState } from "react";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import dayjs, { Dayjs } from "dayjs";
 
-const series = [
-  //Note: this data should be from the backend but unforunately api is restricted for premium users
+const initialSeries = [
+  // Note: this data should be from the backend but unfortunately API is restricted for premium users
   {
     data: [
       { x: new Date(1538778600000), y: [6629.81, 6650.5, 6623.04, 6633.33] },
@@ -18,7 +23,7 @@ const series = [
 
 const options: ApexOptions = {
   chart: {
-    type: "candlestick", // Ensure this is a valid type
+    type: "candlestick",
     height: 350,
   },
   title: {
@@ -36,6 +41,24 @@ const options: ApexOptions = {
 };
 
 export const HomePage = () => {
+  const [series, setSeries] = useState(initialSeries);
+  const [fromDate, setFromDate] = useState<Dayjs | null>(null);
+  const [toDate, setToDate] = useState<Dayjs | null>(null);
+
+  const handleFilter = () => {
+    if (fromDate && toDate) {
+      const filteredData = initialSeries[0].data.filter(
+        (dataPoint) =>
+          dayjs(dataPoint.x).isAfter(fromDate) &&
+          dayjs(dataPoint.x).isBefore(toDate)
+      );
+
+      setSeries([{ data: filteredData }]);
+    } else {
+      setSeries(initialSeries);
+    }
+  };
+
   return (
     <Container
       component="main"
@@ -44,6 +67,38 @@ export const HomePage = () => {
       }}
       maxWidth="lg"
     >
+      <Typography
+        variant="h6"
+        style={{
+          marginBottom: "20px",
+          textAlign: "center",
+        }}
+      >
+        Filter Stock Data By Date
+      </Typography>
+      <LocalizationProvider dateAdapter={AdapterDayjs}>
+        <Grid container spacing={2} justifyContent="center">
+          <Grid item>
+            <DatePicker
+              label="From Date"
+              value={fromDate}
+              onChange={(newValue) => setFromDate(newValue)}
+            />
+          </Grid>
+          <Grid item>
+            <DatePicker
+              label="To Date"
+              value={toDate}
+              onChange={(newValue) => setToDate(newValue)}
+            />
+          </Grid>
+          <Grid item>
+            <Button variant="contained" color="primary" onClick={handleFilter}>
+              Filter
+            </Button>
+          </Grid>
+        </Grid>
+      </LocalizationProvider>
       <div id="chart">
         <ReactApexChart
           options={options}
