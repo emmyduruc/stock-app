@@ -4,18 +4,24 @@ FROM node:18.14.1
 WORKDIR /usr/src/app
 
 # Copy package.json and yarn.lock to the working directory
-COPY server/package.json server/yarn.lock ./
+COPY package.json yarn.lock ./
 
 # dependencies installation
 RUN yarn install 
 
+# installing nodemon
+RUN yarn global add nodemon
+
 # Copying code to the working directory
 COPY . .
 
-# Expose the port the app runs on
-EXPOSE 3000
+# Generating prisma client
+RUN npx prisma generate
 
-# the command to run my backend and frontend app
-CMD ["sh", "-c", "cd server && yarn migration:run && yarn dev"]
+# Expose the port the app runs on
+EXPOSE 3100
+
+# the command to run and watch my backend app
+CMD ["nodemon", "-L", "--watch", "src", "--exec", "yarn", "dev"]
 
 

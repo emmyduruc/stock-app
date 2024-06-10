@@ -1,7 +1,6 @@
 import { prisma } from "../configs/prisma";
 import { getErrorResponse } from "../middlewares/error.guard";
 import bcrypt from "bcryptjs";
-import { jwtProvider } from "../provider/jwt.provider";
 import { FastifyReply, FastifyRequest } from "fastify";
 import { CreateUserInput, LoginUserInput } from "./auth.schema";
 
@@ -36,7 +35,8 @@ export const createAuthService = {
       const { status, message } = getErrorResponse("USER_NOT_CREATED");
       return reply.status(status).send({ message });
     }
-    const token = jwtProvider({ email, id: user.id });
+    const token = request.jwt.sign({ email, id: user.id });
+    console.log({ token });
 
     return reply.status(201).send({ accessToken: token, user });
   },
@@ -62,7 +62,8 @@ export const createAuthService = {
       return reply.status(status).send({ message });
     }
 
-    const token = jwtProvider({ email, id: user.id });
+    const token = request.jwt.sign({ email, id: user.id });
+    console.log({ token });
     return reply.status(200).send({ accessToken: token, user });
   },
 

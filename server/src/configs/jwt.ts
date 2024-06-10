@@ -1,5 +1,8 @@
 import dotenv from "dotenv";
-dotenv.config({ path: "../.env.development" });
+import { FastifyReply, FastifyRequest } from "fastify";
+import { FastifyJWT } from "@fastify/jwt";
+
+dotenv.config();
 
 export const jwtConfig = {
   secret: process.env.JWT_SECRET as string,
@@ -10,4 +13,21 @@ export const jwtConfig = {
   sign: {
     expiresIn: "1d",
   },
+};
+
+export const verifyToken = async (req: FastifyRequest, reply: FastifyReply) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) {
+    return reply.status(401).send({ message: "Authentication required" });
+  }
+
+  const token = authHeader?.split?.(" ")?.[1];
+
+  try {
+    const decoded = req.jwt.verify<FastifyJWT["user"]>(token);
+    console.log({ decoded });
+    req.user = decoded;
+  } catch (err) {
+    return reply.status(401).send({ message: "Invalid token" });
+  }
 };

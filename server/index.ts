@@ -9,21 +9,27 @@ import fastify from "fastify";
 import "reflect-metadata";
 import { creatAuthRoutes } from "./src/auth/auth.routes";
 import { authSchemas } from "./src/auth/auth.schema";
-import { jwtConfig } from "./src/configs/jwt";
+import { jwtConfig, verifyToken } from "./src/configs/jwt";
 import { swaggerConfig, swaggerUiOptions } from "./src/configs/swagger";
 import { registerErrorHandler } from "./src/middlewares/error.middleware";
 import { createStockRoutes } from "./src/stock/stock.route";
 import { createStockService } from "./src/stock/stock.service";
+import { corsConfig } from "./src/configs/cors";
 
-dotenv.config({ path: "../.env.development" });
+dotenv.config();
 
 const server = fastify().withTypeProvider<TypeBoxTypeProvider>();
 
-server.register(cors, { origin: "*" });
+server.register(cors, corsConfig);
 server.register(helmet);
 server.register(swagger, swaggerConfig);
 server.register(fastifySwaggerUi, swaggerUiOptions);
 server.register(fjwt, jwtConfig);
+server.addHook("preHandler", (req, res, next) => {
+  req.jwt = server.jwt;
+  return next();
+});
+server.decorate("authenticate", verifyToken);
 
 server.register(creatAuthRoutes);
 server.register(createStockRoutes);
@@ -36,13 +42,12 @@ async function startServer() {
   const port = process.env.PORT;
   createStockService.subscribeToTradeUpdates("AAPL");
   await registerErrorHandler(server);
-  console.log(`Starting server at port ${port}`);
   await server.listen({ port: Number(port), host: "0.0.0.0" });
 }
 
 startServer()
   .then(() => {
-    console.log(`Server started successfully at ${process.env.PORT}`);
+    console.log(`Server started successfully at...... ${process.env.PORT}`);
   })
   .catch((err) => {
     console.error("Error starting server:", err);

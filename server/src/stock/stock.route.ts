@@ -6,6 +6,7 @@ export const createStockRoutes = async (app: FastifyInstance) => {
     "/stock/:symbol",
     {
       schema: {
+        description: "Get stock data",
         tags: ["Stock"],
         params: {
           type: "object",
@@ -13,8 +14,12 @@ export const createStockRoutes = async (app: FastifyInstance) => {
             symbol: { type: "string" },
           },
         },
+        security: [{ bearerAuth: [] }],
       },
+
+      preHandler: [app.authenticate],
     },
+
     createStockController.getStocksBySymbol
   );
 
@@ -31,8 +36,12 @@ export const createStockRoutes = async (app: FastifyInstance) => {
             to: { type: "number" },
           },
         },
+
+        security: [{ bearerAuth: [] }],
       },
+      preHandler: [app.authenticate],
     },
+
     createStockController.aggregateCandlestickData
   );
 

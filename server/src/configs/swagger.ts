@@ -1,6 +1,8 @@
+import dotenv from "dotenv";
+dotenv.config();
+
 export const swaggerConfig = {
-  swagger: {
-    openapi: "3.0.0",
+  openapi: {
     info: {
       title: "Test swagger",
       description: "Testing the Fastify swagger API",
@@ -8,27 +10,24 @@ export const swaggerConfig = {
     },
     servers: [
       {
-        url: "http://localhost:3100",
-        description: "Development server",
+        url: `http://localhost:${process.env.PORT}`,
+        description: "Local server",
       },
-    ],
-    tags: [
-      { name: "user", description: "User related end-points" },
-      { name: "code", description: "Code related end-points" },
     ],
     components: {
       securitySchemes: {
-        apiKey: {
-          type: "apiKey",
-          name: "apiKey",
-          in: "header",
+        bearerAuth: {
+          type: "http",
+          scheme: "bearer",
         },
       },
     },
-    externalDocs: {
-      url: "https://swagger.io",
-      description: "Find more info here",
-    },
+    tags: [
+      {
+        name: "Root",
+        description: "Root endpoints",
+      },
+    ],
   },
 };
 

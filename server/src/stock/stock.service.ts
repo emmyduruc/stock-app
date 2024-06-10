@@ -4,7 +4,7 @@ import dotenv from "dotenv";
 import WebSocket from "ws";
 import { prisma } from "../configs/prisma";
 import { getErrorResponse } from "../middlewares/error.guard";
-dotenv.config({ path: "../.env.development" });
+dotenv.config();
 
 export const createStockService = {
   subscribeToTradeUpdates: (symbol: string) => {
@@ -26,7 +26,7 @@ export const createStockService = {
 
     socket.addEventListener("message", async function (event: any) {
       const tradeData = JSON.parse(event.data);
-
+      if (!tradeData.data) return;
       for (const trade of tradeData.data) {
         const { c, p, s, t, v } = trade;
         if (s && t && p !== null && v !== null) {
@@ -72,6 +72,7 @@ export const createStockService = {
   ) => {
     try {
       const { symbol } = request.params;
+      console.log({ symbol });
       const endpoint = `https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${process.env.FINNHUB_API_KEY}`;
 
       const { data } = await axios.get(endpoint, {
@@ -80,6 +81,7 @@ export const createStockService = {
           "Content-Type": "application/json",
         },
       });
+      console.log({ data });
       if (!data) {
         const { status, message } = getErrorResponse("STOCK_NOT_FOUND");
         return reply.status(status).send({ message });
